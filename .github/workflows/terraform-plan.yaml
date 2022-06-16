@@ -36,7 +36,8 @@ on:
 jobs:
 
   plan:
-    runs-on: ubuntu-latest
+    # runs-on: ubuntu-latest
+    runs-on: self-hosted
     container:
       image: hashicorp/terraform:1.0.11
 
