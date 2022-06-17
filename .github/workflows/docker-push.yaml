@@ -9,15 +9,14 @@ on:
         description: "Build args to be used to build the container image."
         required: false
         type: string
-      ociRegistry:
-        description: "Registry to push the image to."
-        required: false
-        type: string
       imageTag:
         description: "Desired tag for container image."
         required: false
         type: string
     secrets:
+      ociRegistry:
+        description: "Registry to push the image to."
+        required: false
       oci_registry_user:
         description: "Username to authn"
         required: false
