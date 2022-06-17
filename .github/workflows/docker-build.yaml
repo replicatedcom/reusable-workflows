@@ -74,6 +74,4 @@ jobs:
 
       - name: Scan image artifact
         run: |
-            cd ${{ inputs.dockerfilePath }}
-            # IMAGE_NAME=$(cat ttl.sh.tag)
             trivy image --ignore-unfixed -s CRITICAL -s HIGH ttl.sh/${IMAGE_NAME}:1h
