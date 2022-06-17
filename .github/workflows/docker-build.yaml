@@ -75,6 +75,5 @@ jobs:
 
       - name: Scan image artifact
         run: |
-            ls -lah
             IMAGE_NAME=$(cat random_uuid)
             trivy image --ignore-unfixed -s CRITICAL -s HIGH ttl.sh/${IMAGE_NAME}:1h
