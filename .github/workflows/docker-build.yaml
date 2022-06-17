@@ -49,11 +49,11 @@ jobs:
             docker build . ${{ inputs.buildArgs }} -t ttl.sh/${IMAGE_NAME}:1h
             docker push ttl.sh/${IMAGE_NAME}:1h
 
-      - name: Upload ttl.sh tag
+      - name: Upload temp tag
         uses: actions/upload-artifact@v3
         with:
           name: random_uuid
-          path: random_uuid
+          path: ${{ inputs.dockerfilePath }}/random_uuid
           retention-days: 1
 
 
@@ -67,7 +67,7 @@ jobs:
       # - name: Checkout repo
       #   uses: actions/checkout@v2
       #
-      - name: Download plan
+      - name: Download tag artifact
         uses: actions/download-artifact@v3
         with:
           name: random_uuid
