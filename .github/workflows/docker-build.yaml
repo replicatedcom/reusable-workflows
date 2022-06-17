@@ -71,7 +71,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: random_uuid
-          path: random_uuid
+          path: ./random_uuid
 
       - name: Scan image artifact
         run: |
