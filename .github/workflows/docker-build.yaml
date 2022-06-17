@@ -48,12 +48,12 @@ jobs:
             docker build . ${{ inputs.buildArgs }} -t ttl.sh/${IMAGE_NAME}:1h
             docker push ttl.sh/${IMAGE_NAME}:1h
 
-      # - name: Upload ttl.sh tag
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: ttl.sh.tag
-      #     path: ${{ inputs.dockerfilePath}}/
-      #     retention-days: 1
+      - name: Upload ttl.sh tag
+        uses: actions/upload-artifact@v3
+        with:
+          name: ttl.sh.tag
+          path: "/tmp/"
+          retention-days: 1
 
 
   scan:
@@ -66,12 +66,13 @@ jobs:
       # - name: Checkout repo
       #   uses: actions/checkout@v2
       #
-      # - name: Download plan
-      #   uses: actions/download-artifact@v3
-      #   with:
-      #     name: ttl.sh.tag
-      #     path: ${{ inputs.dockerfilePath}}/
+      - name: Download plan
+        uses: actions/download-artifact@v3
+        with:
+          name: ttl.sh.tag
+          path: "/tmp/"
 
       - name: Scan image artifact
         run: |
+            IMAGE_NAME=$(cat /tmp/ttl.sh.tag)
             trivy image --ignore-unfixed -s CRITICAL -s HIGH ttl.sh/${IMAGE_NAME}:1h
