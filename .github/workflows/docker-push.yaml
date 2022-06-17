@@ -37,45 +37,41 @@ jobs:
       - name: Build container image
         run: |
             cd ${{ inputs.dockerfilePath }}
-            docker build . ${{ inputs.buildArgs }} -t ${{ inputs.ociRegistry}}:${{ inputs.imageTag }}
-            docker build . ${{ inputs.buildArgs }} -t ${{ inputs.ociRegistry}}:latest
             # Push to ttl.sh for scanning
             IMAGE_NAME=$(uuidgen)
-            docker tag ${{ inputs.ociRegistry}}:${{ inputs.imageTag }} ttl.sh/${IMAGE_NAME}:1h
+            echo $IMAGE_NAME > random_uuid
+            docker build . ${{ inputs.buildArgs }} -t ttl.sh/${IMAGE_NAME}:1h
             docker push ttl.sh/${IMAGE_NAME}:1h
-            echo "${IMAGE_NAME} > ttl.sh.tag
 
-      # - name: Upload ttl.sh tag
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: ttl.sh.tag
-      #     path: ${{ inputs.dockerfilePath}}/
-      #     retention-days: 1
-
+      - name: Upload temp tag
+        uses: actions/upload-artifact@v3
+        with:
+          name: random_uuid
+          path: ${{ inputs.dockerfilePath }}/random_uuid
+          retention-days: 1
 
   scan:
     runs-on: ubuntu-latest
     container:
       image: aquasec/trivy:latest
+    needs: [build]
 
     steps:
-      # - name: Checkout repo
-      #   uses: actions/checkout@v2
-      #
-      # - name: Download plan
-      #   uses: actions/download-artifact@v3
-      #   with:
-      #     name: ttl.sh.tag
-      #     path: ${{ inputs.dockerfilePath}}/
+
+      - name: Download tag artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: random_uuid
+          path: ./
 
       - name: Scan image artifact
         run: |
-            cd ${{ inputs.dockerfilePath }}
-            # IMAGE_NAME=$(cat ttl.sh.tag)
+            IMAGE_NAME=$(cat random_uuid)
             trivy image --ignore-unfixed -s CRITICAL -s HIGH ttl.sh/${IMAGE_NAME}:1h
 
   push:
     runs-on: ubuntu-latest
+    needs: [scan]
 
     steps:
       - name: Checkout repo
@@ -85,7 +81,7 @@ jobs:
         run: |
             cd ${{ inputs.dockerfilePath }}
             docker login -p ${{ secrets.oci_registry_password }} -u ${{ secrets.oci_registry_user }} ${{ inputs.ociRegistry }}
-            docker build . ${{ inputs.buildArgs }} -t ${{ inputs.ociRegistry}}:${{ inputs.imageTag }}
-            docker build . ${{ inputs.buildArgs }} -t ${{ inputs.ociRegistry}}:latest
-            docker push ${{ inputs.ociRegistry}}:${{ inputs.imageTag }}
-            docker push ${{ inputs.ociRegistry}}:latest
+            docker build . ${{ inputs.buildArgs }} -t ${{ inputs.ociRegistry}}/${{ inputs.imageName }}:${{ inputs.imageTag }}
+            docker build . ${{ inputs.buildArgs }} -t ${{ inputs.ociRegistry}}/${{ inputs.imageName }}:latest
+            docker push ${{ inputs.ociRegistry}}/${{ inputs.imageName }}:${{ inputs.imageTag }}
+            docker push ${{ inputs.ociRegistry}}/${{ inputs.imageName }}:latest
