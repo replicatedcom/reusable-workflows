@@ -57,6 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: aquasec/trivy:latest
+    needs: [build]
 
     steps:
       # - name: Checkout repo
