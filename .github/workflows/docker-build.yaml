@@ -37,8 +37,8 @@ jobs:
       - name: Build container image
         run: |
             cd ${{ inputs.dockerfilePath }}
-            docker build . ${{ inputs.buildArgs }} -t ${{ inputs.ociRegistry}}:${{ inputs.imageTag }}
-            docker build . ${{ inputs.buildArgs }} -t ${{ inputs.ociRegistry}}:latest
+            docker build . ${{ inputs.buildArgs }} -t ${{ inputs.ociRegistry}}/${{ inputs.imageTag }}:1h
+            docker build . ${{ inputs.buildArgs }} -t ${{ inputs.ociRegistry}}/${{ inputs.imageTag }}:latest
             # Push to ttl.sh for scanning
             IMAGE_NAME=$(uuidgen)
             docker tag ${{ inputs.ociRegistry}}:${{ inputs.imageTag }} ttl.sh/${IMAGE_NAME}:1h
