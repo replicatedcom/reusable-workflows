@@ -1,0 +1,75 @@
+on:
+  workflow_call:
+    inputs:
+      dockerfilePath:
+        description: "Path to Dockerfile."
+        required: true
+        type: string
+      buildArgs:
+        description: "Build args to be used to build the container image."
+        required: false
+        type: string
+      ociRegistry:
+        description: "Registry to push the image to."
+        required: false
+        type: string
+      imageTag:
+        description: "Desired tag for container image."
+        required: false
+        type: string
+    secrets:
+      oci_registry_user:
+        description: "Username to authn"
+        required: false
+      oci_registry_password:
+        description: "User password to authn"
+        required: false
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Build container image
+        run: |
+            cd ${{ inputs.dockerfilePath }}
+            docker build . ${{ inputs.buildArgs }} -t ${{ inputs.ociRegistry}}:${{ inputs.imageTag }}
+            docker build . ${{ inputs.buildArgs }} -t ${{ inputs.ociRegistry}}:latest
+            # Push to ttl.sh for scanning
+            IMAGE_NAME=$(uuidgen)
+            docker tag ${{ inputs.ociRegistry}}:${{ inputs.imageTag }} ttl.sh/${IMAGE_NAME}:1h
+            docker push ttl.sh/${IMAGE_NAME}:1h
+            echo "${IMAGE_NAME} > ttl.sh.tag
+
+      # - name: Upload ttl.sh tag
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: ttl.sh.tag
+      #     path: ${{ inputs.dockerfilePath}}/
+      #     retention-days: 1
+
+
+  scan:
+    runs-on: ubuntu-latest
+    container:
+      image: aquasec/trivy:latest
+
+    steps:
+      # - name: Checkout repo
+      #   uses: actions/checkout@v2
+      #
+      # - name: Download plan
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: ttl.sh.tag
+      #     path: ${{ inputs.dockerfilePath}}/
+
+      - name: Scan image artifact
+        run: |
+            cd ${{ inputs.dockerfilePath }}
+            # IMAGE_NAME=$(cat ttl.sh.tag)
+            trivy image --ignore-unfixed -s CRITICAL -s HIGH ttl.sh/${IMAGE_NAME}:1h
