@@ -36,9 +36,7 @@ on:
 jobs:
 
   apply:
-    runs-on: ubuntu-latest
-    container:
-      image: hashicorp/terraform:1.0.11
+    runs-on: self-hosted
 
     steps:
       - name: Checkout repo

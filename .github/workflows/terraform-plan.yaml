@@ -38,8 +38,6 @@ jobs:
   plan:
     # runs-on: ubuntu-latest
     runs-on: self-hosted
-    container:
-      image: hashicorp/terraform:1.0.11
 
     steps:
       - name: Checkout repo
