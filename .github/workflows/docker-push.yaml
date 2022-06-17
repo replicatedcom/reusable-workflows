@@ -9,6 +9,10 @@ on:
         description: "Build args to be used to build the container image."
         required: false
         type: string
+      imageName:
+        description: "Desired name for container image."
+        required: false
+        type: string
       imageTag:
         description: "Desired tag for container image."
         required: false
