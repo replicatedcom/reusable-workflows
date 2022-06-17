@@ -45,14 +45,15 @@ jobs:
             docker build . ${{ inputs.buildArgs }} -t ${{ inputs.ociRegistry}}/${{ inputs.imageName }}:latest
             # Push to ttl.sh for scanning
             IMAGE_NAME=$(uuidgen)
+            echo $IMAGE_NAME > random_uuid
             docker build . ${{ inputs.buildArgs }} -t ttl.sh/${IMAGE_NAME}:1h
             docker push ttl.sh/${IMAGE_NAME}:1h
 
       - name: Upload ttl.sh tag
         uses: actions/upload-artifact@v3
         with:
-          name: ttl.sh.tag
-          path: "/tmp/"
+          name: random_uuid
+          path: random_uuid
           retention-days: 1
 
 
@@ -69,10 +70,10 @@ jobs:
       - name: Download plan
         uses: actions/download-artifact@v3
         with:
-          name: ttl.sh.tag
-          path: "/tmp/"
+          name: random_uuid
+          path: random_uuid
 
       - name: Scan image artifact
         run: |
-            IMAGE_NAME=$(cat /tmp/ttl.sh.tag)
+            IMAGE_NAME=$(cat random_uuid)
             trivy image --ignore-unfixed -s CRITICAL -s HIGH ttl.sh/${IMAGE_NAME}:1h
