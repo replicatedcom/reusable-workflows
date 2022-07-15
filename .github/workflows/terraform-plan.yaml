@@ -25,6 +25,10 @@ on:
         description: "CSP region to deploy to"
         required: true
         type: string
+      runner:
+        description: "Env of runner (staging/production)"
+        required: true
+        type: string
     secrets:
       iam_account_id:
         description: "Account id used to authenticate"
@@ -37,7 +41,7 @@ jobs:
 
   plan:
     # runs-on: ubuntu-latest
-    runs-on: self-hosted
+    runs-on: ${{ inputs.runner }}
 
     steps:
       - name: Checkout repo
