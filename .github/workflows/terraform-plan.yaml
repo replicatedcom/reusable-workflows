@@ -29,6 +29,7 @@ on:
         description: "Env of runner (staging/production)"
         required: true
         type: string
+        default: ubuntu-latest
     secrets:
       iam_account_id:
         description: "Account id used to authenticate"
