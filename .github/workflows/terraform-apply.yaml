@@ -27,7 +27,7 @@ on:
         type: string
       runner:
         description: "Env of runner (staging/production)"
-        required: true
+        required: false
         type: string
         default: ubuntu-latest
     secrets:
