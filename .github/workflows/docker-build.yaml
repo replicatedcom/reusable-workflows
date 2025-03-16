@@ -1,0 +1,76 @@
+on:
+  workflow_call:
+    inputs:
+      dockerfilePath:
+        description: "Path to Dockerfile."
+        required: true
+        type: string
+      buildArgs:
+        description: "Build args to be used to build the container image."
+        required: false
+        type: string
+      ociRegistry:
+        description: "Registry to push the image to."
+        required: false
+        type: string
+      imageName:
+        description: "Desired name for container image."
+        required: false
+        type: string
+      imageTag:
+        description: "Desired tag for container image."
+        required: false
+        type: string
+    secrets:
+      oci_registry_user:
+        description: "Username to authn"
+        required: false
+      oci_registry_password:
+        description: "User password to authn"
+        required: false
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Build container image
+        run: |
+            cd ${{ inputs.dockerfilePath }}
+            docker build . ${{ inputs.buildArgs }} -t ${{ inputs.ociRegistry}}/${{ inputs.imageName }}:${{ inputs.imageTag }}
+            docker build . ${{ inputs.buildArgs }} -t ${{ inputs.ociRegistry}}/${{ inputs.imageName }}:latest
+            # Push to ttl.sh for scanning
+            IMAGE_NAME=$(uuidgen)
+            echo $IMAGE_NAME > random_uuid
+            docker build . ${{ inputs.buildArgs }} -t ttl.sh/${IMAGE_NAME}:1h
+            docker push ttl.sh/${IMAGE_NAME}:1h
+
+      - name: Upload temp tag
+        uses: actions/upload-artifact@v3
+        with:
+          name: random_uuid
+          path: ${{ inputs.dockerfilePath }}/random_uuid
+          retention-days: 1
+
+  scan:
+    runs-on: ubuntu-latest
+    container:
+      image: aquasec/trivy:latest
+    needs: [build]
+
+    steps:
+
+      - name: Download tag artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: random_uuid
+          path: ./
+
+      - name: Scan image artifact
+        run: |
+            IMAGE_NAME=$(cat random_uuid)
+            trivy image --ignore-unfixed -s CRITICAL -s HIGH ttl.sh/${IMAGE_NAME}:1h
